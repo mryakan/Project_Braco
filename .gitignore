@@ -45,4 +45,5 @@ Thumbs.db
 
 # IDE Files #
 #############
+__pycache__
 .idea
