@@ -1,12 +1,33 @@
 #!/usr/bin/python3
 
 """
-Using 2 stakcs, implement a FIFO
+Using 2 stacks, implement a FIFO
+This is a weird way to do it, but this is how the requirement for this coding challenge is framed
 """
 
 import sys
 from optparse import OptionParser
 #from operator import xor
+
+class MyStack(object):
+    """
+    basic Stack implementation to use in exercise
+    """
+    def __init__(self):
+        """ Constructor """
+        self.__list = []
+    def get_size(self):
+        """ Get number of elements on the stack """
+        return len(self.__list)
+    def push(self, element):
+        """ Push onto the stack """
+        self.__list.insert(0, element)
+        return True
+    def pop(self):
+        """ Pop off the stack """
+        if not self.get_size():
+            return None
+        return self.__list.pop(0)
 
 class MyFifo(object):
     """
@@ -36,16 +57,27 @@ class MyTwoStackFifo(MyFifo):
     def __init__(self):
         """ Constructor """
         MyFifo.__init__(self)
-        self.__size = 0
+        self.__instack = MyStack()
+        self.__outstack = MyStack()
     def add(self, element):
         """ Add an element """
+        # If we still have things on the outstack we need to put back on the instack to maintain FiFO order
+        while self.__outstack.get_size():
+            self.__instack.push(self.__outstack.pop())
+        # Now add to instack
+        self.__instack.push(element)
         return True
     def remove(self):
         """ Remove element in FiFo order """
-        return None
+        # To get FiFo order, we need to pop one by one from a and push on outstack to reverse order
+        if not self.get_size():
+            return None
+        while self.__instack.get_size():
+            self.__outstack.push(self.__instack.pop())
+        return self.__outstack.pop()
     def get_size(self):
         """ Retrieve Size of FIFO """
-        return self.__size
+        return self.__instack.get_size()+self.__outstack.get_size()
 
 def execute():
     """ Main execution function """
