@@ -92,6 +92,19 @@ private:
 	MyLinkedList<SE> *list;
 };
 
+// Fifo using a Two stack implementation (yes very retarted)
+template <typename E>
+class MyTwoStackFifo {
+public:
+    MyTwoStackFifo() {this->inStack = new MyStack<E>; this->outStack = new MyStack<E>;}
+    ~MyTwoStackFifo() {delete(this->inStack);delete(this->outStack);}
+    bool add(MyElement<E> *e);
+    MyElement<E> *remove(void);
+    unsigned long long getSize(void) {return this->inStack->getSize()+this->outStack->getSize();}
+private:
+    MyStack<E> *inStack, *outStack;
+};
+
 
 // #############
 // MyLinkedList
@@ -158,13 +171,30 @@ MyLinkedList<TE>::removeElem(MyElement<TE> *e) {
     return e;
 }
 
-// ########
-// MyStack
-// ########
-//unsigned int
-//MyStack::get_size(void) {
-//  return this->size;
-//}
+// ###############
+// MyTwoStackFifo
+// ###############
+template <typename E>
+bool
+MyTwoStackFifo<E>::add(MyElement<E> *e) {
+    while (this->outStack->getSize()) {
+        this->inStack->push(this->outStack->pop());
+    }
+    this->inStack->push(e);
+    return true;
+}
+
+template <typename E>
+MyElement<E> *
+MyTwoStackFifo<E>::remove(void) {
+    if (this->getSize() == 0) {
+        return NULL;
+    }
+    while (this->inStack->getSize()) {
+        this->outStack->push(this->inStack->pop());
+    }
+    return this->outStack->pop();
+}
 
 // ##################
 // MyElementTest
@@ -252,9 +282,9 @@ public:
     }
 };
 
-// ##################
+// ############
 // MyStackTest
-// ##################
+// ############
 class MyStackTest : public CppUnit::TestCase {
 public:
     MyStackTest(string name) : CppUnit::TestCase(name) {}
@@ -291,6 +321,45 @@ public:
 
 };
 
+// ###################
+// MyTwoStackFifoTest
+// ###################
+class MyTwoStackFifoTest : public CppUnit::TestCase {
+public:
+    MyTwoStackFifoTest(string name) : CppUnit::TestCase(name) {}
+    // Some basic unit testing
+    void runTest() {
+        MyElement<char> c1('a');
+        MyElement<char> c2('b');
+        MyElement<char> c3('c');
+        MyTwoStackFifo<char> f1;
+        unsigned long long numAdded=0;
+        cout << "Adding " << *(c1.getElemPtr()) << "(size = " << c1.getElemSize() << ")" << " to Fifo." << endl;
+        f1.add(&c1); numAdded++;
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        cout << "Adding " << *(c2.getElemPtr()) << "(size = " << c2.getElemSize() << ")" << " to Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        f1.add(&c2); numAdded++;
+        cout << "Adding " << *(c3.getElemPtr()) << "(size = " << c3.getElemSize() << ")" << " to Fifo." << endl;
+        f1.add(&c3); numAdded++;
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+
+        MyElement<char> *e;
+        e = f1.remove(); numAdded--;
+        cout << "Removed " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " from Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(&c1, e);
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        e = f1.remove(); numAdded--;
+        cout << "Removed " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " from Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(&c2, e);
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        e = f1.remove(); numAdded--;
+        cout << "Removed " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " from Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(&c3, e);
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+    }
+};
+
 // ######
 // Tests
 // ######
@@ -318,6 +387,13 @@ bool test3(void) {
     return success;
 }
 
+bool test4(void) {
+    cout << "Testing MyTwoStackFifoTest..." << endl;
+    CppUnit::TextUi::TestRunner runner;
+    runner.addTest(new MyTwoStackFifoTest("MyTwoStackFifoTest"));
+    bool success = runner.run();
+    return success;
+}
 
 // #####
 // Main
@@ -341,5 +417,9 @@ int main(int argc, char *argv[]) {
     if (!rc) {
         exit(EXIT_FAILURE);
     }
-    exit(EXIT_SUCCESS);
+    rc = test4();
+    if (!rc) {
+        exit(EXIT_FAILURE);
+    }
+   exit(EXIT_SUCCESS);
 }
