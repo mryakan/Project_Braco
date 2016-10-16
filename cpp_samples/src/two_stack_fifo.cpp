@@ -31,6 +31,8 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "cppunit/TestCase.h"
 #include "cppunit/ui/text/TestRunner.h"
 
@@ -38,21 +40,21 @@ using namespace std;
 
 // 1st let's create a template for List Elements
 template <typename T>
-class MyListElement {
+class MyElement {
 public:
-    MyListElement() : prev(NULL), next(NULL) {}
-    MyListElement(T &initializer) : prev(NULL), next(NULL), element(initializer) {}
-    MyListElement(T initializer) : prev(NULL), next(NULL), element(initializer) {}
-    ~MyListElement() {}
-    void setNext(MyListElement<T> *ptr) {this->next = ptr;}
-    MyListElement<T> *getNext(void) {return this->next;}
-    void setPrev(MyListElement<T> *ptr) {this->prev = ptr;}
-    MyListElement<T> *getPrev(void) {return this->prev;}
+    MyElement() : prev(NULL), next(NULL) {}
+    MyElement(T &initializer) : prev(NULL), next(NULL), element(initializer) {}
+    MyElement(T initializer) : prev(NULL), next(NULL), element(initializer) {}
+    ~MyElement() {}
+    void setNext(MyElement<T> *ptr) {this->next = ptr;}
+    MyElement<T> *getNext(void) {return this->next;}
+    void setPrev(MyElement<T> *ptr) {this->prev = ptr;}
+    MyElement<T> *getPrev(void) {return this->prev;}
     T *getElemPtr(void) {return &this->element;}
     size_t getElemSize(void) {return sizeof(this->element);}
 private:
-    MyListElement<T> *prev;
-    MyListElement<T> *next;
+    MyElement<T> *prev;
+    MyElement<T> *next;
     T element;
 };
 
@@ -61,33 +63,33 @@ private:
 template <typename TE>
 class MyLinkedList {
 public:
-	MyLinkedList(MyListElement<TE> *elemPtr);
+	MyLinkedList(MyElement<TE> *elemPtr);
     MyLinkedList(void) : MyLinkedList(NULL) {}
-    ~MyLinkedList() {/*TBD*/}
+    ~MyLinkedList() {}
     unsigned long long len(void) {return this->numElems;}
-    MyListElement<TE> *getHead(void) {return this->head;}
-    MyListElement<TE> *getTail(void) {return this->tail;}
-    MyListElement<TE> *addElemAtHead(void) {return this->numElems;}
-    MyListElement<TE> *addElemAtTail(void) {return this->numElems;}
-    //MyListElement<TE> *addElemAfterElem(MyListElement<TE> *e);
-    //MyListElement<TE> *addElemBeforeElem(MyListElement<TE> *e);
-    MyListElement<TE> *removeElem(MyListElement<TE> *e);
+    MyElement<TE> *getHead(void) {return this->head;}
+    MyElement<TE> *getTail(void) {return this->tail;}
+    MyElement<TE> *addElemAtHead(MyElement<TE> *e);
+//    MyElement<TE> *addElemAtTail(MyElement<TE> *e);
+    //MyElement<TE> *addElemAfterElem(MyElement<TE> *e);
+    //MyElement<TE> *addElemBeforeElem(MyElement<TE> *e);
+    MyElement<TE> *removeElem(MyElement<TE> *e);
 private:
     unsigned long long numElems;
-    MyListElement<TE> *head, *tail;
+    MyElement<TE> *head, *tail;
 };
 
-// Let's start with a simple stack of characters
-// Also for now let's limit the size to the initial size.
+// Let's start with a simple stack implementation using the list
+template <typename SE>
 class MyStack {
 public:
-	MyStack(const unsigned int initial_size=0) : size(initial_size), head(NULL) {}
-	bool push(char *element);
-	char *pop(void);
-	unsigned int get_size(void);
+	MyStack() {this->list = new MyLinkedList<SE>;}
+	~MyStack() {delete(this->list);}
+	bool push(MyElement<SE> *e) {return (this->list->addElemAtHead(e) == e);}
+	MyElement<SE> *pop(void) {return this->list->removeElem(this->list->getHead());}
+	unsigned long long getSize(void) {return this->list->len();}
 private:
-	unsigned int size;
-	void *head;
+	MyLinkedList<SE> *list;
 };
 
 
@@ -95,27 +97,49 @@ private:
 // MyLinkedList
 // #############
 template <typename TE>
-MyLinkedList<TE>::MyLinkedList(MyListElement<TE> *elemPtr) {
-
-    this->numElems = 0;
-    this->head = elemPtr;
-    if (elemPtr)
-        elemPtr->setPrev(NULL); // Element has to be added to front of list
-    MyListElement<TE> *ptr = this->head;
-    // preserve next if already exist!
-    while (ptr) {
-        this->tail = ptr;
-        ptr = ptr->getNext();
-        this->numElems++;
-    }
+MyLinkedList<TE>::MyLinkedList(MyElement<TE> *elemPtr) : numElems(0), head(NULL), tail(NULL) {
+    this->addElemAtHead(elemPtr);
 }
 
 template <typename TE>
-MyListElement<TE> *MyLinkedList<TE>::removeElem(MyListElement<TE> *e) {
+MyElement<TE> *
+MyLinkedList<TE>::addElemAtHead(MyElement<TE> *e) {
     if (e == NULL) {
         return NULL;
     }
-    MyListElement<TE> *prev = e->getPrev(), *next = e->getNext();
+    e->setPrev(NULL);
+    MyElement<TE> *ptr = e, *last=NULL;
+    // preserve chain if already exist!
+    while (ptr) {
+        last = ptr;
+        ptr = ptr->getNext();
+        this->numElems++;
+    }
+    // prepend new list to old and update tail if necessary
+    if (this->head) {
+        this->head->setPrev(last);
+    }
+    last->setNext(this->head);
+    this->head = e;
+    if (this->tail == NULL) {
+        this->tail = last;
+    }
+    return e;
+}
+
+//template <typename TE>
+//MyElement<TE> *
+//addElemAtTail(MyElement<TE> *e) {
+//
+//}
+
+template <typename TE>
+MyElement<TE> *
+MyLinkedList<TE>::removeElem(MyElement<TE> *e) {
+    if (e == NULL) {
+        return NULL;
+    }
+    MyElement<TE> *prev = e->getPrev(), *next = e->getNext();
     if (this->head == e) {
         this->head = next;
     }
@@ -130,28 +154,43 @@ MyListElement<TE> *MyLinkedList<TE>::removeElem(MyListElement<TE> *e) {
     }
     e->setPrev(NULL);
     e->setNext(NULL);
+    this->numElems--;
     return e;
 }
 
+// ########
+// MyStack
+// ########
+//unsigned int
+//MyStack::get_size(void) {
+//  return this->size;
+//}
 
 // ##################
-// MyListElementTest
+// MyElementTest
 // ##################
-class MyListElementTest : public CppUnit::TestCase {
+class MyElementTest : public CppUnit::TestCase {
 public:
-    MyListElementTest(string name) : CppUnit::TestCase(name) {}
+    MyElementTest(string name) : CppUnit::TestCase(name) {}
     // Some basic unit testing
     void runTest() {
 
-        MyListElement<int> e0;
-        MyListElement<char [32]> e1;
-        MyListElement<unsigned long long> e2;
+        MyElement<int> e0;
+        MyElement<char [32]> e1;
+        MyElement<unsigned long long> e2;
         CPPUNIT_ASSERT_EQUAL(sizeof(int), e0.getElemSize());
         CPPUNIT_ASSERT_EQUAL(32*sizeof(char), e1.getElemSize());
         CPPUNIT_ASSERT_EQUAL(sizeof(unsigned long long), e2.getElemSize());
         int *x = e0.getElemPtr();
         *x = -1;
         CPPUNIT_ASSERT_EQUAL(-1, *(e0.getElemPtr()));
+
+        char cArray[32] = {'a', 'b', 'c'};
+        MyElement<char [32]> e3;
+        strncpy((char *)(e3.getElemPtr()), cArray, sizeof(cArray));
+        CPPUNIT_ASSERT(strncmp(cArray, *(e3.getElemPtr()), e3.getElemSize()) == 0);
+        MyElement<string> e4("Hello World");
+        CPPUNIT_ASSERT(e4.getElemPtr()->compare("Hello World") == 0);
     }
 };
 
@@ -161,12 +200,12 @@ public:
 class MyListTest : public CppUnit::TestCase {
 public:
     MyListTest(string name) : CppUnit::TestCase(name) {}
-    // Some basic unit testing
+    // Some basic unit testing, not comprehensive, only some boundary conditions tested
     void runTest() {
-        MyListElement<int> e0(-1);
+        MyElement<int> e0(-1);
         CPPUNIT_ASSERT_EQUAL(-1, *(e0.getElemPtr()));
-        CPPUNIT_ASSERT_EQUAL((MyListElement<int> *)NULL, e0.getPrev());
-        CPPUNIT_ASSERT_EQUAL((MyListElement<int> *)NULL, e0.getNext());
+        CPPUNIT_ASSERT_EQUAL((MyElement<int> *)NULL, e0.getPrev());
+        CPPUNIT_ASSERT_EQUAL((MyElement<int> *)NULL, e0.getNext());
 
         MyLinkedList<int> list0(&e0);
         CPPUNIT_ASSERT_EQUAL((unsigned long long)1, list0.len());
@@ -175,11 +214,11 @@ public:
         CPPUNIT_ASSERT_EQUAL(-1, *((list0.getHead())->getElemPtr()));
         CPPUNIT_ASSERT_EQUAL(-1, *((list0.getHead())->getElemPtr()));
 
-        MyListElement<char> *e1 = new MyListElement<char>('a');
-        MyListElement<char> e2('b');
+        MyElement<char> *e1 = new MyElement<char>('a');
+        MyElement<char> e2('b');
         CPPUNIT_ASSERT_EQUAL('a', *(e1->getElemPtr()));
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getPrev());
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getNext());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, e1->getPrev());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, e1->getNext());
         e1->setNext(&e2);
         e2.setPrev(e1);
 
@@ -188,44 +227,77 @@ public:
         CPPUNIT_ASSERT_EQUAL((unsigned long long)2, list1.len());
         CPPUNIT_ASSERT_EQUAL(e1, list1.getHead());
         CPPUNIT_ASSERT_EQUAL(&e2, list1.getTail());
-        MyListElement<char> *ptr = list1.getHead();
+        MyElement<char> *ptr = list1.getHead();
         CPPUNIT_ASSERT_EQUAL(e1, ptr);
         CPPUNIT_ASSERT_EQUAL('a', *(ptr->getElemPtr()));
         ptr = ptr->getNext();
         CPPUNIT_ASSERT_EQUAL(&e2, ptr);
         CPPUNIT_ASSERT_EQUAL('b', *(ptr->getElemPtr()));
         ptr = ptr->getNext();
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, ptr);
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, ptr);
         // Remove current tail and check
         list1.removeElem(&e2);
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e2.getNext());
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e2.getPrev());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, e2.getNext());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, e2.getPrev());
         CPPUNIT_ASSERT_EQUAL(e1, list1.getHead());
         CPPUNIT_ASSERT_EQUAL(e1, list1.getTail());
         // remove only element & check
         list1.removeElem(e1);
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getNext());
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getPrev());
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, list1.getHead());
-        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, list1.getTail());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, e1->getNext());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, e1->getPrev());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, list1.getHead());
+        CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, list1.getTail());
+
+        delete(e1);
     }
 };
 
-// ########
-// MyStack
-// ########
-//unsigned int
-//MyStack::get_size(void) {
-//	return this->size;
-//}
+// ##################
+// MyStackTest
+// ##################
+class MyStackTest : public CppUnit::TestCase {
+public:
+    MyStackTest(string name) : CppUnit::TestCase(name) {}
+    // Some basic unit testing
+    void runTest() {
+        MyElement<int> int0(-1), int1(0), int2(1);
+
+        MyStack<int> s1;
+        unsigned long long numPushed=0;
+        cout << "Pushing " << *(int0.getElemPtr()) << "(size = " << int0.getElemSize() << ")" << " onto stack." << endl;
+        s1.push(&int0); numPushed++;
+        CPPUNIT_ASSERT_EQUAL(numPushed, s1.getSize());
+        cout << "Pushing " << *(int1.getElemPtr()) << "(size = " << int1.getElemSize() << ")" << " onto stack." << endl;
+        s1.push(&int1); numPushed++;
+        CPPUNIT_ASSERT_EQUAL(numPushed, s1.getSize());
+        cout << "Pushing " << *(int2.getElemPtr()) << "(size = " << int2.getElemSize() << ")" << " onto stack." << endl;
+        s1.push(&int2); numPushed++;
+        CPPUNIT_ASSERT_EQUAL(numPushed, s1.getSize());
+
+        MyElement<int> *e;
+        e = s1.pop(); numPushed--;
+        cout << "Popped " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " off the stack." << endl;
+        CPPUNIT_ASSERT_EQUAL(&int2, e);
+        CPPUNIT_ASSERT_EQUAL(numPushed, s1.getSize());
+        e = s1.pop(); numPushed--;
+        cout << "Popped " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " off the stack." << endl;
+        CPPUNIT_ASSERT_EQUAL(&int1, e);
+        CPPUNIT_ASSERT_EQUAL(numPushed, s1.getSize());
+        e =s1.pop(); numPushed--;
+        cout << "Popped " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " off the stack." << endl;
+        CPPUNIT_ASSERT_EQUAL(&int0, e);
+        CPPUNIT_ASSERT_EQUAL(numPushed, s1.getSize());
+    }
+
+};
 
 // ######
 // Tests
 // ######
 bool test1(void) {
-    cout << "Testing MyListElement..." << endl;
+    cout << "Testing MyElement..." << endl;
     CppUnit::TextUi::TestRunner runner;
-    runner.addTest(new MyListElementTest("MyListElementTest"));
+    runner.addTest(new MyElementTest("MyElementTest"));
     bool success = runner.run();
     return success;
 }
@@ -238,13 +310,22 @@ bool test2(void) {
     return success;
 }
 
+bool test3(void) {
+    cout << "Testing MyStack..." << endl;
+    CppUnit::TextUi::TestRunner runner;
+    runner.addTest(new MyStackTest("MyStackTest"));
+    bool success = runner.run();
+    return success;
+}
+
+
 // #####
 // Main
 // #####
 int main(int argc, char *argv[]) {
-    MyListElement<int> e0;
-    MyListElement<char [32]> e1;
-    MyListElement<unsigned long long> e2;
+    MyElement<int> e0;
+    MyElement<char [32]> e1;
+    MyElement<unsigned long long> e2;
 //    MyLinkedList list0, list1(10, 10);
 //	cout << "List0 has " << list0.len() << " elements each of size " << list0.get_elem_size() << endl;
 //    cout << "List0 has " << list1.len() << " elements each of size " << list1.get_elem_size() << endl;
@@ -253,6 +334,10 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     rc = test2();
+    if (!rc) {
+        exit(EXIT_FAILURE);
+    }
+    rc = test3();
     if (!rc) {
         exit(EXIT_FAILURE);
     }
