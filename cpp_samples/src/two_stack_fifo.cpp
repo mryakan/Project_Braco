@@ -71,7 +71,7 @@ public:
     MyListElement<TE> *addElemAtTail(void) {return this->numElems;}
     //MyListElement<TE> *addElemAfterElem(MyListElement<TE> *e);
     //MyListElement<TE> *addElemBeforeElem(MyListElement<TE> *e);
-    bool removeElem(MyListElement<TE> *e);
+    MyListElement<TE> *removeElem(MyListElement<TE> *e);
 private:
     unsigned long long numElems;
     MyListElement<TE> *head, *tail;
@@ -108,6 +108,29 @@ MyLinkedList<TE>::MyLinkedList(MyListElement<TE> *elemPtr) {
         ptr = ptr->getNext();
         this->numElems++;
     }
+}
+
+template <typename TE>
+MyListElement<TE> *MyLinkedList<TE>::removeElem(MyListElement<TE> *e) {
+    if (e == NULL) {
+        return NULL;
+    }
+    MyListElement<TE> *prev = e->getPrev(), *next = e->getNext();
+    if (this->head == e) {
+        this->head = next;
+    }
+    if (this->tail == e) {
+        this->tail = prev;
+    }
+    if (prev) {
+        prev->setNext(next);
+    }
+    if (next) {
+        next->setPrev(prev);
+    }
+    e->setPrev(NULL);
+    e->setNext(NULL);
+    return e;
 }
 
 
@@ -158,9 +181,13 @@ public:
         CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getPrev());
         CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getNext());
         e1->setNext(&e2);
+        e2.setPrev(e1);
 
+        // create lits with [e1, e2] and check
         MyLinkedList<char> list1(e1);
         CPPUNIT_ASSERT_EQUAL((unsigned long long)2, list1.len());
+        CPPUNIT_ASSERT_EQUAL(e1, list1.getHead());
+        CPPUNIT_ASSERT_EQUAL(&e2, list1.getTail());
         MyListElement<char> *ptr = list1.getHead();
         CPPUNIT_ASSERT_EQUAL(e1, ptr);
         CPPUNIT_ASSERT_EQUAL('a', *(ptr->getElemPtr()));
@@ -169,6 +196,18 @@ public:
         CPPUNIT_ASSERT_EQUAL('b', *(ptr->getElemPtr()));
         ptr = ptr->getNext();
         CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, ptr);
+        // Remove current tail and check
+        list1.removeElem(&e2);
+        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e2.getNext());
+        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e2.getPrev());
+        CPPUNIT_ASSERT_EQUAL(e1, list1.getHead());
+        CPPUNIT_ASSERT_EQUAL(e1, list1.getTail());
+        // remove only element & check
+        list1.removeElem(e1);
+        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getNext());
+        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, e1->getPrev());
+        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, list1.getHead());
+        CPPUNIT_ASSERT_EQUAL((MyListElement<char> *)NULL, list1.getTail());
     }
 };
 
