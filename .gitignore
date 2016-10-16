@@ -49,4 +49,7 @@ __pycache__
 .idea
 .metadata
 RemoteSystemsTempFiles
+.cproject
+.project
+.settings
 
