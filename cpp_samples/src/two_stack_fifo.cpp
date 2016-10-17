@@ -196,6 +196,26 @@ MyTwoStackFifo<E>::remove(void) {
     return this->outStack->pop();
 }
 
+
+
+// ##############
+// Test Helpers
+// ##############
+bool  printTestHeader(const string testname){
+    cout << endl;
+    cout << string(80, '+') << endl;
+    cout << "Testing " <<  testname << "..." << endl;
+    cout << endl;
+    return true;
+}
+
+bool  printTestTrailer(const string testname){
+    cout << endl;
+    cout << "Test End." << endl;
+    cout << string(80, '+') << endl;
+    return true;
+}
+
 // ##################
 // MyElementTest
 // ##################
@@ -203,8 +223,10 @@ class MyElementTest : public CppUnit::TestCase {
 public:
     MyElementTest(string name) : CppUnit::TestCase(name) {}
     // Some basic unit testing
+    void setUp() {
+        printTestHeader(this->getName());
+    }
     void runTest() {
-
         MyElement<int> e0;
         MyElement<char [32]> e1;
         MyElement<unsigned long long> e2;
@@ -222,6 +244,9 @@ public:
         MyElement<string> e4("Hello World");
         CPPUNIT_ASSERT(e4.getElemPtr()->compare("Hello World") == 0);
     }
+    void tearDown() {
+        printTestTrailer(this->getName());
+    }
 };
 
 // ###########
@@ -231,6 +256,9 @@ class MyListTest : public CppUnit::TestCase {
 public:
     MyListTest(string name) : CppUnit::TestCase(name) {}
     // Some basic unit testing, not comprehensive, only some boundary conditions tested
+    void setUp() {
+        printTestHeader(this->getName());
+    }
     void runTest() {
         MyElement<int> e0(-1);
         CPPUNIT_ASSERT_EQUAL(-1, *(e0.getElemPtr()));
@@ -280,6 +308,9 @@ public:
 
         delete(e1);
     }
+    void tearDown() {
+        printTestTrailer(this->getName());
+    }
 };
 
 // ############
@@ -289,6 +320,9 @@ class MyStackTest : public CppUnit::TestCase {
 public:
     MyStackTest(string name) : CppUnit::TestCase(name) {}
     // Some basic unit testing
+    void setUp() {
+        printTestHeader(this->getName());
+    }
     void runTest() {
         MyElement<int> int0(-1), int1(0), int2(1);
 
@@ -318,7 +352,9 @@ public:
         CPPUNIT_ASSERT_EQUAL(&int0, e);
         CPPUNIT_ASSERT_EQUAL(numPushed, s1.getSize());
     }
-
+    void tearDown() {
+        printTestTrailer(this->getName());
+    }
 };
 
 // ###################
@@ -328,6 +364,9 @@ class MyTwoStackFifoTest : public CppUnit::TestCase {
 public:
     MyTwoStackFifoTest(string name) : CppUnit::TestCase(name) {}
     // Some basic unit testing
+    void setUp() {
+        printTestHeader(this->getName());
+    }
     void runTest() {
         MyElement<char> c1('a');
         MyElement<char> c2('b');
@@ -358,43 +397,58 @@ public:
         CPPUNIT_ASSERT_EQUAL(&c3, e);
         CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
     }
+    void tearDown() {
+        printTestTrailer(this->getName());
+    }
 };
 
 // ######
 // Tests
 // ######
-bool test1(void) {
-    cout << "Testing MyElement..." << endl;
+//bool test1(void) {
+//    cout << "Testing MyElement..." << endl;
+//    CppUnit::TextUi::TestRunner runner;
+//    runner.addTest(new MyElementTest("MyElementTest"));
+//    bool success = runner.run();
+//    return success;
+//}
+//
+//bool test2(void) {
+//    cout << "Testing MyList..." << endl;
+//    CppUnit::TextUi::TestRunner runner;
+//    runner.addTest(new MyListTest("MyListTest"));
+//    bool success = runner.run();
+//    return success;
+//}
+//
+//bool test3(void) {
+//    cout << "Testing MyStack..." << endl;
+//    CppUnit::TextUi::TestRunner runner;
+//    runner.addTest(new MyStackTest("MyStackTest"));
+//    bool success = runner.run();
+//    return success;
+//}
+//
+//bool test4(void) {
+//    cout << "Testing MyTwoStackFifoTest..." << endl;
+//    CppUnit::TextUi::TestRunner runner;
+//    runner.addTest(new MyTwoStackFifoTest("MyTwoStackFifoTest"));
+//    bool success = runner.run();
+//    return success;
+//}
+
+bool runUnitTests(void) {
+    CppUnit::TestSuite *suite = new CppUnit::TestSuite();
+    suite->addTest(new MyElementTest("MyElementTest"));
+    suite->addTest(new MyListTest("MyListTest"));
+    suite->addTest(new MyStackTest("MyStackTest"));
+    suite->addTest(new MyTwoStackFifoTest("MyTwoStackFifoTest"));
+
     CppUnit::TextUi::TestRunner runner;
-    runner.addTest(new MyElementTest("MyElementTest"));
+    runner.addTest(suite);
     bool success = runner.run();
     return success;
 }
-
-bool test2(void) {
-    cout << "Testing MyList..." << endl;
-    CppUnit::TextUi::TestRunner runner;
-    runner.addTest(new MyListTest("MyListTest"));
-    bool success = runner.run();
-    return success;
-}
-
-bool test3(void) {
-    cout << "Testing MyStack..." << endl;
-    CppUnit::TextUi::TestRunner runner;
-    runner.addTest(new MyStackTest("MyStackTest"));
-    bool success = runner.run();
-    return success;
-}
-
-bool test4(void) {
-    cout << "Testing MyTwoStackFifoTest..." << endl;
-    CppUnit::TextUi::TestRunner runner;
-    runner.addTest(new MyTwoStackFifoTest("MyTwoStackFifoTest"));
-    bool success = runner.run();
-    return success;
-}
-
 // #####
 // Main
 // #####
@@ -405,21 +459,25 @@ int main(int argc, char *argv[]) {
 //    MyLinkedList list0, list1(10, 10);
 //	cout << "List0 has " << list0.len() << " elements each of size " << list0.get_elem_size() << endl;
 //    cout << "List0 has " << list1.len() << " elements each of size " << list1.get_elem_size() << endl;
-    bool rc = test1();
-    if (!rc) {
-        exit(EXIT_FAILURE);
-    }
-    rc = test2();
-    if (!rc) {
-        exit(EXIT_FAILURE);
-    }
-    rc = test3();
-    if (!rc) {
-        exit(EXIT_FAILURE);
-    }
-    rc = test4();
-    if (!rc) {
-        exit(EXIT_FAILURE);
-    }
-   exit(EXIT_SUCCESS);
+//    bool rc = test1();
+//    if (!rc) {
+//        exit(EXIT_FAILURE);
+//    }
+//    rc = test2();
+//    if (!rc) {
+//        exit(EXIT_FAILURE);
+//    }
+//    rc = test3();
+//    if (!rc) {
+//        exit(EXIT_FAILURE);
+//    }
+//    rc = test4();
+//    if (!rc) {
+//        exit(EXIT_FAILURE);
+//    }
+    bool rc = runUnitTests();
+       if (!rc) {
+           exit(EXIT_FAILURE);
+       }
+    exit(EXIT_SUCCESS);
 }
