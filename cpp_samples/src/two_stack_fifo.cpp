@@ -402,41 +402,9 @@ public:
     }
 };
 
-// ######
-// Tests
-// ######
-//bool test1(void) {
-//    cout << "Testing MyElement..." << endl;
-//    CppUnit::TextUi::TestRunner runner;
-//    runner.addTest(new MyElementTest("MyElementTest"));
-//    bool success = runner.run();
-//    return success;
-//}
-//
-//bool test2(void) {
-//    cout << "Testing MyList..." << endl;
-//    CppUnit::TextUi::TestRunner runner;
-//    runner.addTest(new MyListTest("MyListTest"));
-//    bool success = runner.run();
-//    return success;
-//}
-//
-//bool test3(void) {
-//    cout << "Testing MyStack..." << endl;
-//    CppUnit::TextUi::TestRunner runner;
-//    runner.addTest(new MyStackTest("MyStackTest"));
-//    bool success = runner.run();
-//    return success;
-//}
-//
-//bool test4(void) {
-//    cout << "Testing MyTwoStackFifoTest..." << endl;
-//    CppUnit::TextUi::TestRunner runner;
-//    runner.addTest(new MyTwoStackFifoTest("MyTwoStackFifoTest"));
-//    bool success = runner.run();
-//    return success;
-//}
-
+// ##################
+// Test Suite Runner
+// ##################
 bool runUnitTests(void) {
     CppUnit::TestSuite *suite = new CppUnit::TestSuite();
     suite->addTest(new MyElementTest("MyElementTest"));
@@ -449,32 +417,11 @@ bool runUnitTests(void) {
     bool success = runner.run();
     return success;
 }
+
 // #####
 // Main
 // #####
 int main(int argc, char *argv[]) {
-    MyElement<int> e0;
-    MyElement<char [32]> e1;
-    MyElement<unsigned long long> e2;
-//    MyLinkedList list0, list1(10, 10);
-//	cout << "List0 has " << list0.len() << " elements each of size " << list0.get_elem_size() << endl;
-//    cout << "List0 has " << list1.len() << " elements each of size " << list1.get_elem_size() << endl;
-//    bool rc = test1();
-//    if (!rc) {
-//        exit(EXIT_FAILURE);
-//    }
-//    rc = test2();
-//    if (!rc) {
-//        exit(EXIT_FAILURE);
-//    }
-//    rc = test3();
-//    if (!rc) {
-//        exit(EXIT_FAILURE);
-//    }
-//    rc = test4();
-//    if (!rc) {
-//        exit(EXIT_FAILURE);
-//    }
     bool rc = runUnitTests();
        if (!rc) {
            exit(EXIT_FAILURE);
