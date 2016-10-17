@@ -70,6 +70,7 @@ public:
     MyElement<TE> *getHead(void) {return this->head;}
     MyElement<TE> *getTail(void) {return this->tail;}
     MyElement<TE> *addElemAtHead(MyElement<TE> *e);
+    MyElement<TE> *findFromLastS(unsigned long long index);
 //    MyElement<TE> *addElemAtTail(MyElement<TE> *e);
     //MyElement<TE> *addElemAfterElem(MyElement<TE> *e);
     //MyElement<TE> *addElemBeforeElem(MyElement<TE> *e);
@@ -171,6 +172,27 @@ MyLinkedList<TE>::removeElem(MyElement<TE> *e) {
     return e;
 }
 
+// Find mth index elemnt from end assuming Singly Linked list
+template <typename TE>
+MyElement<TE> *
+MyLinkedList<TE>::findFromLastS(unsigned long long index) {
+    MyElement<TE> *ptr = this->getHead();
+    unsigned long long count = 0;
+    MyElement<TE> *ans = ptr;
+    while (ptr && ptr->getNext()) {
+        count++;
+        ptr = ptr->getNext();
+        if (count > index) {
+            count--;
+            ans = ans->getNext();
+        }
+    }
+    if (count != index) {
+        return NULL;
+    }
+    return ans;
+}
+
 // ###############
 // MyTwoStackFifo
 // ###############
@@ -260,6 +282,10 @@ public:
         printTestHeader(this->getName());
     }
     void runTest() {
+        MyLinkedList<int> empty_list;
+        CPPUNIT_ASSERT_EQUAL((MyElement<int> *)NULL, empty_list.findFromLastS(0));
+        CPPUNIT_ASSERT_EQUAL((MyElement<int> *)NULL, empty_list.findFromLastS(1));
+
         MyElement<int> e0(-1);
         CPPUNIT_ASSERT_EQUAL(-1, *(e0.getElemPtr()));
         CPPUNIT_ASSERT_EQUAL((MyElement<int> *)NULL, e0.getPrev());
@@ -271,6 +297,8 @@ public:
         CPPUNIT_ASSERT_EQUAL(&e0, list0.getTail());
         CPPUNIT_ASSERT_EQUAL(-1, *((list0.getHead())->getElemPtr()));
         CPPUNIT_ASSERT_EQUAL(-1, *((list0.getHead())->getElemPtr()));
+        CPPUNIT_ASSERT_EQUAL((MyElement<int> *)NULL, list0.findFromLastS(1));
+        CPPUNIT_ASSERT_EQUAL(-1, *((list0.findFromLastS(0))->getElemPtr()));
 
         MyElement<char> *e1 = new MyElement<char>('a');
         MyElement<char> e2('b');
@@ -307,6 +335,32 @@ public:
         CPPUNIT_ASSERT_EQUAL((MyElement<char> *)NULL, list1.getTail());
 
         delete(e1);
+
+        unsigned int tailval = 0, headval = 0;
+        const unsigned int nelems = 5;
+        MyElement<unsigned int> uinti[nelems];
+        for (headval=0; headval< nelems; headval++) {
+            *(uinti[headval].getElemPtr()) = headval;
+        }
+        headval--;
+        MyLinkedList<unsigned int> list2;
+        for (unsigned int i=0; i < nelems; i++) {
+                cout << "Adding to Head: " << *(uinti[i].getElemPtr()) << endl;
+                list2.addElemAtHead(&uinti[i]);
+        }
+        unsigned int uintx;
+        uintx = *(list2.getHead()->getElemPtr());
+        cout << "Head is = " << uintx << endl;
+        CPPUNIT_ASSERT_EQUAL(headval, uintx);
+        uintx = *(list2.getTail()->getElemPtr());
+        cout << "Tail is = " << uintx << endl;
+        CPPUNIT_ASSERT_EQUAL(tailval, uintx);
+        for (unsigned int i=0; i < nelems; i++) {
+            uintx = *(list2.findFromLastS(i)->getElemPtr());
+            cout << "Element " << i << " from tail is = " << uintx << endl;
+            CPPUNIT_ASSERT_EQUAL(i, uintx);
+        }
+        CPPUNIT_ASSERT_EQUAL((MyElement<unsigned int> *)NULL, list2.findFromLastS(nelems));
     }
     void tearDown() {
         printTestTrailer(this->getName());
