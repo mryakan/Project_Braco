@@ -56,12 +56,23 @@ def first_nonrepeating_char(somestring):
             return character
     return None
 
+def reverseSentence(sentence):
+    """Reverse a sentence and make sure only 1st letter in sentence is capitalized and it ends with a dot"""
+    if not sentence:
+        return sentence
+    words = list(sentence.lower().strip('.').split(' '))
+    words.reverse()
+    words[0] = words[0].capitalize()
+    return ' '.join(words)+'.'
+
+
 def test():
     """Some tests for above fns"""
     test_strings = ['tomatoes', 'potatoes', 'pepper', 'seemlessly', 'tintin']
     for astring in test_strings:
         print("First non-repeating char in '%s' is '%s'" %
               (astring, first_nonrepeating_char(astring)))
+    print(reverseSentence("We live in interesting times."))
     return True
 
 if __name__ == '__main__':
