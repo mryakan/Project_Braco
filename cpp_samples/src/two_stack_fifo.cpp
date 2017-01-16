@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 #include "cppunit/TestCase.h"
 #include "cppunit/ui/text/TestRunner.h"
 
@@ -106,6 +107,18 @@ private:
     MyStack<E> *inStack, *outStack;
 };
 
+// Fifo using a vector implementation
+template <typename E>
+class MyVecFifo {
+public:
+    MyVecFifo() {this->myVector = new vector<MyElement <E> *>;}
+    ~MyVecFifo() {delete(this->myVector);}
+    bool add(MyElement<E> *e);
+    MyElement<E> *remove(void);
+    unsigned long long getSize(void) {return this->myVector->size();}
+private:
+    vector<MyElement <E> *> *myVector;
+};
 
 // #############
 // MyLinkedList
@@ -216,6 +229,30 @@ MyTwoStackFifo<E>::remove(void) {
         this->outStack->push(this->inStack->pop());
     }
     return this->outStack->pop();
+}
+
+// ##########
+// MyVecFifo
+// ##########
+template <typename E>
+bool
+MyVecFifo<E>::add(MyElement<E> *e) {
+    // Insert at the end
+    this->myVector->push_back(e);
+    return true;
+}
+
+template <typename E>
+MyElement<E> *
+MyVecFifo<E>::remove(void) {
+    if (this->getSize() == 0) {
+        return NULL;
+    }
+    // for FiFo, return the first since we insert at end
+    MyElement<E> *e = this->myVector->front();
+    // Now delete returned element
+    this->myVector->erase(this->myVector->begin());
+    return e;
 }
 
 
@@ -456,6 +493,51 @@ public:
     }
 };
 
+// ###################
+// MyVecFifoTest
+// ###################
+class MyVecFifoTest : public CppUnit::TestCase {
+public:
+    MyVecFifoTest(string name) : CppUnit::TestCase(name) {}
+    // Some basic unit testing
+    void setUp() {
+        printTestHeader(this->getName());
+    }
+    void runTest() {
+        MyElement<char> c1('a');
+        MyElement<char> c2('b');
+        MyElement<char> c3('c');
+        MyVecFifo<char> f1;
+        unsigned long long numAdded=0;
+        cout << "Adding " << *(c1.getElemPtr()) << "(size = " << c1.getElemSize() << ", " << &c1 << ")" << " to Fifo." << endl;
+        f1.add(&c1); numAdded++;
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        cout << "Adding " << *(c2.getElemPtr()) << "(size = " << c2.getElemSize() << ", " << &c2  << ")" << " to Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        f1.add(&c2); numAdded++;
+        cout << "Adding " << *(c3.getElemPtr()) << "(size = " << c3.getElemSize() << ", " << &c3  << ")" << " to Fifo." << endl;
+        f1.add(&c3); numAdded++;
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+
+        MyElement<char> *e;
+        e = f1.remove(); numAdded--;
+        cout << "Removed " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " from Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(&c1, e);
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        e = f1.remove(); numAdded--;
+        cout << "Removed " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " from Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(&c2, e);
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+        e = f1.remove(); numAdded--;
+        cout << "Removed " << *(e->getElemPtr()) << "(size = " << e->getElemSize() << ")" << " from Fifo." << endl;
+        CPPUNIT_ASSERT_EQUAL(&c3, e);
+        CPPUNIT_ASSERT_EQUAL(numAdded, f1.getSize());
+    }
+    void tearDown() {
+        printTestTrailer(this->getName());
+    }
+};
+
 // ##################
 // Test Suite Runner
 // ##################
@@ -465,6 +547,7 @@ bool runUnitTests(void) {
     suite->addTest(new MyListTest("MyListTest"));
     suite->addTest(new MyStackTest("MyStackTest"));
     suite->addTest(new MyTwoStackFifoTest("MyTwoStackFifoTest"));
+    suite->addTest(new MyVecFifoTest("MyVecFifoTest"));
 
     CppUnit::TextUi::TestRunner runner;
     runner.addTest(suite);
