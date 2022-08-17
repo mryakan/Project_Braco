@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;c_samples/src/fib_mt.c&apos; to &apos;sqr_mt.c&apos;" description="Rename resource &apos;fib_mt.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/fib_mt.c" name="sqr_mt.c" stamp="1483489038513" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;c_samples/src/sqr_mt.c&apos; to &apos;sqrt_mt.c&apos;" description="Rename resource &apos;sqr_mt.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/sqr_mt.c" name="sqrt_mt.c" stamp="1483490800446" updateReferences="true"/>
+</session>
